@@ -1,6 +1,6 @@
 /**
  * This file is part of SADL, a library for learning all sorts of (timed) automata and performing sequence-based anomaly detection.
- * Copyright (C) 2013-2015  the original author or authors.
+ * Copyright (C) 2013-2016  the original author or authors.
  *
  * SADL is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  *
@@ -8,7 +8,6 @@
  *
  * You should have received a copy of the GNU General Public License along with SADL.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package sadl.modellearner.rtiplus;
 
 import java.util.List;
@@ -17,7 +16,6 @@ import java.util.NavigableSet;
 import com.google.common.collect.TreeMultimap;
 
 import sadl.input.TimedInput;
-import sadl.interfaces.Model;
 import sadl.interfaces.ProbabilisticModel;
 import sadl.modellearner.rtiplus.boolop.OrOperator;
 import sadl.modellearner.rtiplus.tester.NaiveLikelihoodRatioTester;
@@ -46,7 +44,7 @@ public class SearchingPDRTALearner extends SimplePDRTALearner {
 
 		logger.info("RTI+: Building automaton from input sequences");
 
-		final boolean expand = distrCheckType.compareTo(DistributionCheckType.ALL) > 0;
+		final boolean expand = distrCheckType.compareTo(DistributionCheckType.STRICT) > 0;
 		final PDRTAInput in = new PDRTAInput(trainingSequences, histBinsStr, expand);
 		final PDRTA a = new PDRTA(in);
 
@@ -54,7 +52,7 @@ public class SearchingPDRTALearner extends SimplePDRTALearner {
 		logger.info("Parameters are: significance={} distrCheckType={}", significance, distrCheckType);
 		logger.info("Histogram Bins are: {}", a.getHistBinsString());
 
-		logger.info("*** Performing greedy RTI+ ***");
+		logger.info("*** Performing searching RTI+ ***");
 		startTime = System.currentTimeMillis();
 		final StateColoring sc = new StateColoring(a);
 		sc.setRed(a.getRoot());
@@ -62,7 +60,7 @@ public class SearchingPDRTALearner extends SimplePDRTALearner {
 		mainModel = a;
 		greedyRTIplus(a, sc);
 
-		logger.info("Final PDRTA contains {} states and {} transitions", a.getNumberOfStates(), a.getSize());
+		logger.info("Final PDRTA contains {} states and {} transitions", a.getStateCount(), a.getSize());
 		logger.info("Trained PDRTA with quality: Likelihood={} and AIC={}", Math.exp(NaiveLikelihoodRatioTester.calcLikelihood(a).getRatio()), calcAIC(a));
 
 		a.cleanUp();
@@ -87,7 +85,7 @@ public class SearchingPDRTALearner extends SimplePDRTALearner {
 			if (directory != null) {
 				draw(a, true, directory, counter);
 			}
-			logger.debug("Automaton contains {} states and {} transitions", a.getNumberOfStates(), a.getSize());
+			logger.debug("Automaton contains {} states and {} transitions", a.getStateCount(), a.getSize());
 			logger.debug("Found most visited transition  {}  containing {} tails", t.toString(), t.in.getTails().size());
 			counter++;
 
@@ -177,7 +175,7 @@ public class SearchingPDRTALearner extends SimplePDRTALearner {
 		}
 
 		a.checkConsistency();
-		assert (a.getNumberOfStates() == sc.getNumRedStates());
+		assert (a.getStateCount() == sc.getNumRedStates());
 		if (directory != null) {
 			draw(a, true, directory, counter);
 		}

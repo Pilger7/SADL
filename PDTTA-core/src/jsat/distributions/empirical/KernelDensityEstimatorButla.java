@@ -1,6 +1,6 @@
 /**
  * This file is part of SADL, a library for learning all sorts of (timed) automata and performing sequence-based anomaly detection.
- * Copyright (C) 2013-2015  the original author or authors.
+ * Copyright (C) 2013-2016  the original author or authors.
  *
  * SADL is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  *
@@ -8,9 +8,7 @@
  *
  * You should have received a copy of the GNU General Public License along with SADL.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package jsat.distributions.empirical;
-
 import gnu.trove.list.TDoubleList;
 import gnu.trove.list.array.TDoubleArrayList;
 
@@ -67,8 +65,6 @@ public class KernelDensityEstimatorButla {
 
 	public KernelDensityEstimatorButla(Vec dataPoints, KDEFormelVariant formelVariant, double bandwidth, double minSearchStep, double minSearchAccuracy) {
 
-		// TODO check
-
 		this.dataPoints = dataPoints.sortedCopy();
 		this.X = dataPoints.arrayCopy();
 		this.minSearchStep = minSearchStep;
@@ -110,13 +106,13 @@ public class KernelDensityEstimatorButla {
 					final double t = x[0];
 					double sum = 0.0d;
 
-					final double maxH = Math.pow(X[X.length - 1] * 0.05, 2);
-					int from = Arrays.binarySearch(X, t - maxH * 13);
-					int to = Arrays.binarySearch(X, t + maxH * 13);
+					int from = Arrays.binarySearch(X, t / 1.65); // 1 + 13 * 0.05 = 1,65
+					int to = Arrays.binarySearch(X, t / 0.35); // 1 - 13 * 0.05 = 0,35
 					from = from < 0 ? -from - 1 : from;
 					to = to < 0 ? -to - 1 : to;
+					to = Math.min(X.length, to + 1);
 
-					for (int i = Math.max(0, from); i < Math.min(X.length, to + 1); i++) {
+					for (int i = 0; i < X.length; i++) {
 						final double ti = dataPoints.get(i);
 						if (!Precision.equals(ti, 0)) {
 							sum += Math.exp(-Math.pow(t - ti, 2) / (2 * 0.05 * ti)) / (Math.sqrt(2.0 * Math.PI) * 0.05 * ti);
@@ -141,13 +137,14 @@ public class KernelDensityEstimatorButla {
 					final double t = x[0];
 					double sum = 0.0d;
 
-					final double maxH = Math.pow(X[X.length - 1] * 0.05, 2);
-					int from = Arrays.binarySearch(X, t - maxH * 13);
-					int to = Arrays.binarySearch(X, t + maxH * 13);
+					int from = Arrays.binarySearch(X, t / 1.65);
+					int to = Arrays.binarySearch(X, t / 0.35);
+
 					from = from < 0 ? -from - 1 : from;
 					to = to < 0 ? -to - 1 : to;
+					to = Math.min(X.length, to + 1);
 
-					for (int i = Math.max(0, from); i < Math.min(X.length, to + 1); i++) {
+					for (int i = 0; i < X.length; i++) {
 						final double ti = dataPoints.get(i);
 						if (!Precision.equals(ti, 0)) {
 							sum += (-79.7885 * Math.exp(-10 * Math.pow(t - ti, 2) / ti) * (Math.pow(ti, 2) + 0.1 * ti - Math.pow(t, 2))) / Math.pow(ti, 3);
@@ -177,13 +174,13 @@ public class KernelDensityEstimatorButla {
 					final double t = x[0];
 					double sum = 0.0d;
 
-					final double maxH = Math.pow(X[X.length - 1] * 0.05, 2);
-					int from = Arrays.binarySearch(X, t - maxH * 13);
-					int to = Arrays.binarySearch(X, t + maxH * 13);
+					int from = Arrays.binarySearch(X, t / 1.65);
+					int to = Arrays.binarySearch(X, t / 0.35);
 					from = from < 0 ? -from - 1 : from;
 					to = to < 0 ? -to - 1 : to;
+					to = Math.min(X.length, to + 1);
 
-					for (int i = Math.max(0, from); i < Math.min(X.length, to + 1); i++) {
+					for (int i = Math.max(0, from); i < to; i++) {
 						final double ti = X[i];
 						if (!Precision.equals(ti, 0)) {
 							sum += Math.exp(-Math.pow(t - ti, 2) / (2 * Math.pow(0.05 * ti, 2))) / (Math.sqrt(2.0 * Math.PI) * 0.05 * ti);
@@ -208,13 +205,13 @@ public class KernelDensityEstimatorButla {
 					final double t = x[0];
 					double sum = 0.0d;
 
-					final double maxH = Math.pow(X[X.length - 1] * 0.05, 2);
-					int from = Arrays.binarySearch(X, t - maxH * 13);
-					int to = Arrays.binarySearch(X, t + maxH * 13);
+					int from = Arrays.binarySearch(X, t / 1.65);
+					int to = Arrays.binarySearch(X, t / 0.35);
 					from = from < 0 ? -from - 1 : from;
 					to = to < 0 ? -to - 1 : to;
+					to = Math.min(X.length, to + 1);
 
-					for (int i = Math.max(0, from); i < Math.min(X.length, to + 1); i++) {
+					for (int i = Math.max(0, from); i < to; i++) {
 						final double ti = dataPoints.get(i);
 						if (!Precision.equals(ti, 0)) {
 							sum += ((-7.97885 * Math.pow(ti, 2) - 3191.54 * ti * t + 3191.54 * Math.pow(t, 2)) * Math.exp(-200 * Math.pow(t - ti, 2)
@@ -246,13 +243,13 @@ public class KernelDensityEstimatorButla {
 					final double t = x[0];
 					double sum = 0.0d;
 
-					final double maxH = X[X.length - 1] * 0.05;
-					int from = Arrays.binarySearch(X, t - maxH * 13);
-					int to = Arrays.binarySearch(X, t + maxH * 13);
+					int from = Arrays.binarySearch(X, t / 1.65);
+					int to = Arrays.binarySearch(X, t / 0.35);
 					from = from < 0 ? -from - 1 : from;
 					to = to < 0 ? -to - 1 : to;
+					to = Math.min(X.length, to + 1);
 
-					for (int i = Math.max(0, from); i < Math.min(X.length, to + 1); i++) {
+					for (int i = Math.max(0, from); i < to; i++) {
 						final double ti = dataPoints.get(i);
 						if (!Precision.equals(ti, 0)) {
 							sum += Math.exp(-Math.pow(t - ti, 2) / (2 * 0.05 * ti)) / (Math.sqrt(2.0 * Math.PI * 0.05 * ti));
@@ -277,13 +274,13 @@ public class KernelDensityEstimatorButla {
 					final double t = x[0];
 					double sum = 0.0d;
 
-					final double maxH = X[X.length - 1] * 0.05;
-					int from = Arrays.binarySearch(X, t - maxH * 13);
-					int to = Arrays.binarySearch(X, t + maxH * 13);
+					int from = Arrays.binarySearch(X, t / 1.65);
+					int to = Arrays.binarySearch(X, t / 0.35);
 					from = from < 0 ? -from - 1 : from;
 					to = to < 0 ? -to - 1 : to;
+					to = Math.min(X.length, to + 1);
 
-					for (int i = Math.max(0, from); i < Math.min(X.length, to + 1); i++) {
+					for (int i = Math.max(0, from); i < to; i++) {
 						final double ti = dataPoints.get(i);
 						if (!Precision.equals(ti, 0)) {
 							sum += (Math.exp(-10 * Math.pow(t - ti, 2) / ti) * (-17.8412 * Math.pow(ti, 2) - 0.892062 * ti + 17.8412 * Math.pow(t, 2)))
@@ -346,9 +343,9 @@ public class KernelDensityEstimatorButla {
 			lastValue = newValue;
 
 			if (kdeFormelVariant == KDEFormelVariant.ButlaBandwidthNotSquared || kdeFormelVariant == KDEFormelVariant.OriginalButlaVariableBandwidth) {
-				step = x * 0.05d / 4.0;
+				step = Math.max(0.25, x * 0.05d / 16.0);
 			} else if (kdeFormelVariant == KDEFormelVariant.ButlaBandwidthSquared) {
-				step = Math.pow(x * 0.05d, 2) / 4.0;
+				step = Math.max(0.25, Math.pow(x * 0.05d, 2) / 16.0);
 			}
 		}
 

@@ -1,6 +1,6 @@
 /**
  * This file is part of SADL, a library for learning all sorts of (timed) automata and performing sequence-based anomaly detection.
- * Copyright (C) 2013-2015  the original author or authors.
+ * Copyright (C) 2013-2016  the original author or authors.
  *
  * SADL is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  *
@@ -8,7 +8,6 @@
  *
  * You should have received a copy of the GNU General Public License along with SADL.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package sadl.run.datagenerators;
 
 import java.io.BufferedWriter;
@@ -98,7 +97,7 @@ public class SmacDataGeneratorMixed implements Serializable {
 		// System.out.println(outputDir.resolve(p));
 		// ps.waitFor();
 		logger.info("Finished TauPTA creation.");
-		logger.info("Before inserting anomalies, normal PTA has {} states and {} transitions",pta.getNumberOfStates(),pta.getTransitionCount());
+		logger.info("Before inserting anomalies, normal PTA has {} states and {} transitions",pta.getStateCount(),pta.getTransitionCount());
 		final List<TauPTA> abnormalPtas = new ArrayList<>();
 		for (final AnomalyInsertionType type : AnomalyInsertionType.values()) {
 			if (type != AnomalyInsertionType.NONE && type != AnomalyInsertionType.ALL) {
@@ -109,12 +108,12 @@ public class SmacDataGeneratorMixed implements Serializable {
 				if (type == AnomalyInsertionType.TYPE_TWO) {
 					anomaly.removeAbnormalSequences(pta);
 				}
-				logger.info("After inserting anomaly type {}, normal PTA has {} states and {} transitions", type, pta.getNumberOfStates(),
+				logger.info("After inserting anomaly type {}, normal PTA has {} states and {} transitions", type, pta.getStateCount(),
 						pta.getTransitionCount());
 
 			}
 		}
-		logger.info("After inserting all anomalies, normal PTA has {} states and {} transitions", pta.getNumberOfStates(), pta.getTransitionCount());
+		logger.info("After inserting all anomalies, normal PTA has {} states and {} transitions", pta.getStateCount(), pta.getTransitionCount());
 		final TObjectIntMap<TauPTA> anomalyOccurences = new TObjectIntHashMap<>();
 		final Random anomalyChooser = MasterSeed.nextRandom();
 		while (k < SAMPLE_FILES) {

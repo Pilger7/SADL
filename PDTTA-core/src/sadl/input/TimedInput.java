@@ -1,6 +1,6 @@
 /**
  * This file is part of SADL, a library for learning all sorts of (timed) automata and performing sequence-based anomaly detection.
- * Copyright (C) 2013-2015  the original author or authors.
+ * Copyright (C) 2013-2016  the original author or authors.
  *
  * SADL is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  *
@@ -8,7 +8,6 @@
  *
  * You should have received a copy of the GNU General Public License along with SADL.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package sadl.input;
 
 import java.io.BufferedReader;
@@ -24,14 +23,20 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
+import sadl.constants.AnomalyInsertionType;
 import sadl.constants.ClassLabel;
+import sadl.utils.MasterSeed;
 
 /**
  * Class for reading a set of timed sequences from a file or writing them to a file.
@@ -56,6 +61,7 @@ public class TimedInput implements Iterable<TimedWord>, Serializable {
 	private static final int parseStartAlt = 1;
 
 	public TimedInput(List<TimedWord> words) {
+
 		this.words.addAll(words);
 		for (final TimedWord w : words) {
 			if (w.getClass() == TimedWord.class) {
@@ -66,6 +72,14 @@ public class TimedInput implements Iterable<TimedWord>, Serializable {
 					}
 				}
 			}
+		}
+	}
+
+	public TimedInput(String[] alphabet) {
+
+		for (int i = 0; i < alphabet.length; i++) {
+			this.alphabet.put(alphabet[i], i);
+			alphabetRev.add(alphabet[i]);
 		}
 	}
 
@@ -112,7 +126,6 @@ public class TimedInput implements Iterable<TimedWord>, Serializable {
 		return parseCustom(br, parseStart, parseSymbols[0], parseSymbols[1], parseSymbols[2], parseSymbols[3], parseSymbols[4], skipFirstElement);
 
 	}
-
 
 	/**
 	 * Parses timed sequences from a file that has the following alternative format:
@@ -292,7 +305,6 @@ public class TimedInput implements Iterable<TimedWord>, Serializable {
 	private void loadData(Reader br, int lineOffset, String seqPrefix, String seqPostfix, String pairSep, String valueSep, String classSep,
 			boolean skipFirstElement) throws IOException {
 
-
 		try (BufferedReader in = new BufferedReader(br)) {
 
 			// Skip offset lines at the beginning of the file
@@ -333,7 +345,7 @@ public class TimedInput implements Iterable<TimedWord>, Serializable {
 					}
 					word.setLabel(label);
 				}
-
+				line = line.trim();
 				// Remove sequence prefix
 				line = line.replaceAll(seqPrefix, "");
 
@@ -349,8 +361,8 @@ public class TimedInput implements Iterable<TimedWord>, Serializable {
 					for (; i < splitWord.length; i++) {
 						splitPair = splitWord[i].split(valueSep, 2);
 						if (splitPair.length < 2) {
-							final String errorMessage = "Pair \"" + splitWord[i] + "\" in line " + lineCount + " is in the wrong format. Separator \"" + valueSep
-									+ "\" not found!";
+							final String errorMessage = "Pair \"" + splitWord[i] + "\" in line " + lineCount + " is in the wrong format. Separator \""
+									+ valueSep + "\" not found!";
 							final IllegalArgumentException e = new IllegalArgumentException(errorMessage);
 							logger.error(errorMessage, e);
 							throw e;
@@ -392,6 +404,7 @@ public class TimedInput implements Iterable<TimedWord>, Serializable {
 	}
 
 	private boolean cleared = false;
+
 	/**
 	 * Removes all {@link TimedWord}s from the {@link TimedInput} to reduce memory consumption.
 	 */
@@ -606,11 +619,53 @@ public class TimedInput implements Iterable<TimedWord>, Serializable {
 		return true;
 	}
 
+	/**
+	 * Decreases the size of the timed input.
+	 * 
+	 * @param d
+	 *            the value to decrease the sample size. Must be between 0 and 1
+	 */
 	public void decreaseSamples(double d) {
-		words = words.subList(0, (int) (words.size() * d));
+		if (d > 0 && d < 1) {
+			words = new ArrayList<>(words.subList(0, (int) (words.size() * d)));
+		}
 	}
 
 	public List<TimedWord> getWords() {
 		return Collections.unmodifiableList(words);
+	}
+
+	Random r = null;
+
+	public TimedInput insertRandomAnomalies(AnomalyInsertionType type, double anomalyPercentage) {
+		if (r == null) {
+			r = MasterSeed.nextRandom();
+		}
+		final TimedInput result = SerializationUtils.clone(this);
+		final int size = result.size();
+		final int requestedAnomalies = (int) (size * anomalyPercentage);
+		final TIntSet anomalyIndexes = new TIntHashSet();
+		while (anomalyIndexes.size() < requestedAnomalies) {
+			int index = r.nextInt(anomalyIndexes.size());
+			while (anomalyIndexes.contains(index)) {
+				index = r.nextInt(anomalyIndexes.size());
+			}
+
+			if (type == AnomalyInsertionType.TYPE_ONE) {
+
+			} else if (type == AnomalyInsertionType.TYPE_TWO) {
+
+			} else if (type == AnomalyInsertionType.TYPE_THREE) {
+
+			} else if (type == AnomalyInsertionType.TYPE_FOUR) {
+
+			} else if (type == AnomalyInsertionType.TYPE_FIVE) {
+
+			} else if (type == AnomalyInsertionType.ALL) {
+
+			}
+			anomalyIndexes.add(index);
+		}
+		return result;
 	}
 }

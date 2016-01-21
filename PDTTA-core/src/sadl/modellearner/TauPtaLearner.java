@@ -1,6 +1,6 @@
 /**
  * This file is part of SADL, a library for learning all sorts of (timed) automata and performing sequence-based anomaly detection.
- * Copyright (C) 2013-2015  the original author or authors.
+ * Copyright (C) 2013-2016  the original author or authors.
  *
  * SADL is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  *
@@ -8,7 +8,6 @@
  *
  * You should have received a copy of the GNU General Public License along with SADL.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package sadl.modellearner;
 
 import java.util.ArrayList;
@@ -29,6 +28,7 @@ import jsat.distributions.ContinuousDistribution;
 import jsat.distributions.empirical.kernelfunc.KernelFunction;
 import sadl.input.TimedInput;
 import sadl.input.TimedWord;
+import sadl.interfaces.TauEstimator;
 import sadl.models.TauPTA;
 import sadl.structure.Transition;
 import sadl.structure.ZeroProbTransition;
@@ -47,6 +47,10 @@ public class TauPtaLearner extends PdttaLearner {
 		super(null, kdeKernelFunction, kdeBandwidth);
 	}
 
+	public TauPtaLearner(KernelFunction kdeKernelFunction, double kdeBandwidth, TauEstimator tauEstimation) {
+		super(null, kdeKernelFunction, kdeBandwidth, tauEstimation);
+	}
+
 	public TauPtaLearner(KernelFunction kdeKernelFunction) {
 		super(null, kdeKernelFunction, -1);
 	}
@@ -59,6 +63,28 @@ public class TauPtaLearner extends PdttaLearner {
 
 	@Override
 	public TauPTA train(TimedInput trainingSequences) {
+		return train(trainingSequences, false);
+	}
+
+	private void addEventSequence(TauPTA pta, TimedWord s) {
+		int currentState = TauPTA.START_STATE;
+
+		for (int i = 0; i < s.length(); i++) {
+			final String nextEvent = s.getSymbol(i);
+			Transition t = pta.getTransition(currentState, nextEvent);
+			if (t == null) {
+				t = pta.addTransition(currentState, pta.getStateCount(), nextEvent, TauPTA.NO_TRANSITION_PROBABILITY);
+				transitionCount.put(t.toZeroProbTransition(), 0);
+			}
+			transitionCount.increment(t.toZeroProbTransition());
+			currentState = t.getToState();
+		}
+		// add final state count
+		finalStateCount.adjustOrPutValue(currentState, 1, 1);
+	}
+
+	public TauPTA train(TimedInput trainingSequences, boolean monteCarloPreprocessing) {
+
 		transitionCount = new TObjectIntHashMap<>();
 		finalStateCount = new TIntIntHashMap();
 		trainingSequences = SerializationUtils.clone(trainingSequences);
@@ -73,7 +99,7 @@ public class TauPtaLearner extends PdttaLearner {
 		// remove transitions and ending states with less than X occurences
 		final double threshold = TauPTA.SEQUENCE_OMMIT_THRESHOLD * trainingSequences.size();
 		for (final int state : initialPta.getStates()) {
-			final List<Transition> stateTransitions = initialPta.getTransitions(state, false);
+			final List<Transition> stateTransitions = initialPta.getOutTransitions(state, false);
 			for (final Transition t : stateTransitions) {
 				if (transitionCount.get(t.toZeroProbTransition()) < threshold) {
 					initialPta.removeTimedTransition(t, false);
@@ -86,7 +112,7 @@ public class TauPtaLearner extends PdttaLearner {
 
 		// compute event probabilities from counts
 		for (final int state : initialPta.getStates()) {
-			final List<Transition> stateTransitions = initialPta.getTransitions(state, false);
+			final List<Transition> stateTransitions = initialPta.getOutTransitions(state, false);
 			int occurenceCount = 0;
 			for (final Transition t : stateTransitions) {
 				occurenceCount += transitionCount.get(t.toZeroProbTransition());
@@ -113,7 +139,7 @@ public class TauPtaLearner extends PdttaLearner {
 
 		// compute event probabilities from counts
 		for (final int state : newPta.getStates()) {
-			final List<Transition> stateTransitions = newPta.getTransitions(state, false);
+			final List<Transition> stateTransitions = newPta.getOutTransitions(state, false);
 			int occurenceCount = 0;
 			for (final Transition t : stateTransitions) {
 				occurenceCount += transitionCount.get(t.toZeroProbTransition());
@@ -124,6 +150,7 @@ public class TauPtaLearner extends PdttaLearner {
 			}
 			newPta.addFinalState(state, finalStateCount.get(state) / (double) occurenceCount);
 		}
+
 
 		// compute time probabilities
 		final Map<ZeroProbTransition, TDoubleList> timeValueBuckets = new HashMap<>();
@@ -161,26 +188,12 @@ public class TauPtaLearner extends PdttaLearner {
 			// compute what is missing in the distribution set
 		}
 		newPta.setAlphabet(trainingSequences);
+		if (monteCarloPreprocessing) {
+			newPta.preprocess();
+		}
 		newPta.makeImmutable();
 		return newPta;
+
 	}
-
-	private void addEventSequence(TauPTA pta, TimedWord s) {
-		int currentState = TauPTA.START_STATE;
-
-		for (int i = 0; i < s.length(); i++) {
-			final String nextEvent = s.getSymbol(i);
-			Transition t = pta.getTransition(currentState, nextEvent);
-			if (t == null) {
-				t = pta.addTransition(currentState, pta.getNumberOfStates(), nextEvent, TauPTA.NO_TRANSITION_PROBABILITY);
-				transitionCount.put(t.toZeroProbTransition(), 0);
-			}
-			transitionCount.increment(t.toZeroProbTransition());
-			currentState = t.getToState();
-		}
-		// add final state count
-		finalStateCount.adjustOrPutValue(currentState, 1, 1);
-	}
-
 
 }

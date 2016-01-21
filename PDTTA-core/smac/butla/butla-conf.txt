@@ -1,14 +1,14 @@
 paramfile = butla/params.pcs
 runObj = QUALITY
 #3 hours algorithm time
-cutoffTime = 10800
+cutoffTime = 3600
 #7 days smac run-time
-wallclock-limit = 604800
+wallclock-limit = 518400
 deterministic = 1
 instance_file = smac-data/train
 test_instance_file = smac-data/test
 instance-suffix = txt
 test-instance-suffix = txt
-algo = java -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -jar run/PDTTA-core-0.0.1-SNAPSHOT.jar smac BUTLA
+algo = java -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:ThreadStackSize=512 -jar run/PDTTA-core-0.0.1-SNAPSHOT.jar smac BUTLA
 num-test-instances = 10
 deterministic = true

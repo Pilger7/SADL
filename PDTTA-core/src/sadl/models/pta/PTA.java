@@ -1,6 +1,6 @@
 /**
  * This file is part of SADL, a library for learning all sorts of (timed) automata and performing sequence-based anomaly detection.
- * Copyright (C) 2013-2015  the original author or authors.
+ * Copyright (C) 2013-2016  the original author or authors.
  *
  * SADL is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  *
@@ -8,9 +8,7 @@
  *
  * You should have received a copy of the GNU General Public License along with SADL.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package sadl.models.pta;
-
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -23,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.ListIterator;
 
 import org.slf4j.Logger;
@@ -42,8 +41,8 @@ public class PTA {
 	protected HashMap<String, Event> events;
 	protected int depth = 0;
 
-	protected ArrayList<PTAState> states = new ArrayList<>();
-	protected ArrayList<PTATransition> transitions = new ArrayList<>();
+	protected List<PTAState> states = new ArrayList<>();
+	protected List<PTATransition> transitions = new ArrayList<>();
 
 	protected boolean statesMerged = false;
 
@@ -51,7 +50,7 @@ public class PTA {
 		this.events = events;
 		this.root = new PTAState("", null, this);
 		states.add(root);
-		tails.put(root.getId(), root);
+		tails.put(new Integer(root.getId()), root);
 	}
 
 	public PTA(HashMap<String, Event> events, TimedInput timedSequences) {
@@ -71,7 +70,7 @@ public class PTA {
 		return tails;
 	}
 
-	public ArrayList<PTAState> getStates() {
+	public List<PTAState> getStates() {
 
 		return states;
 	}
@@ -129,7 +128,7 @@ public class PTA {
 			final PTATransition transition = currentState.getTransition(subEvent.getSymbol());
 
 			if (transition == null){
-				tails.remove(currentState.id);
+				tails.remove(new Integer(currentState.id));
 				addTail = true;
 
 				// final PTAState nextState = new PTAState(currentState.getWord() + eventSymbol, currentState, this);
@@ -171,7 +170,7 @@ public class PTA {
 		}
 
 		if (addTail) {
-			tails.put(currentState.getId(), currentState);
+			tails.put(new Integer(currentState.getId()), currentState);
 		}
 
 		if (sequence.length() > depth) {
@@ -221,7 +220,7 @@ public class PTA {
 				for (final PTAState tailState : currentTails.values()) {
 					final PTAState fatherState = tailState.getFatherState();
 					if (fatherState.getId() != root.getId() && !fatherState.isMarked()) {
-						nextTails.putIfAbsent(fatherState.getId(), fatherState);
+						nextTails.putIfAbsent(new Integer(fatherState.getId()), fatherState);
 						fatherState.mark();
 					}
 				}
@@ -279,9 +278,10 @@ public class PTA {
 				final PDTAState pdrtaStateTarget = pdtaStates.get(transition.getTarget().getId());
 				final SubEvent event = transition.getEvent();
 
-				// pdrtaStateSource.addTransition(event, pdrtaStateTarget, event.getIntervalInState(ptaState), (double) transition.getCount()
-				// / (outTransitionsCount + endCount));
-				pdrtaStateSource.addTransition(event, pdrtaStateTarget, event.getInterval(), (double) transition.getCount() / (outTransitionsCount + endCount));
+				pdrtaStateSource.addTransition(event, pdrtaStateTarget, event.getIntervalInState(ptaState), (double) transition.getCount()
+						/ (outTransitionsCount + endCount));
+				// pdrtaStateSource.addTransition(event, pdrtaStateTarget, event.getInterval(), (double) transition.getCount() / (outTransitionsCount +
+				// endCount));
 			}
 		}
 
@@ -299,7 +299,7 @@ public class PTA {
 					writer.write(Integer.toString(state.getId()));
 					writer.write(" [shape=circle, label=\"" + Integer.toString(state.getId()) + "\"");
 
-					if (tails.containsKey(state.getId())) {
+					if (tails.containsKey(new Integer(state.getId()))) {
 						writer.write(", color=red");
 					}
 
@@ -317,8 +317,8 @@ public class PTA {
 		}
 	}
 
-	public void cleanUp() {
-		// TODO cleanUp seems buggy. Maybe because not done recursively?
+	@SuppressWarnings("unused")
+	private void cleanUp() {
 		logger.trace("#####Clearning up the PTA...");
 		logger.trace("Before CleanUp there are {} many states in the PTA", states.size());
 		logger.trace("Before CleanUp there are {} many transitions in the PTA", transitions.size());

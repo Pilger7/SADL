@@ -1,6 +1,6 @@
 /**
  * This file is part of SADL, a library for learning all sorts of (timed) automata and performing sequence-based anomaly detection.
- * Copyright (C) 2013-2015  the original author or authors.
+ * Copyright (C) 2013-2016  the original author or authors.
  *
  * SADL is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  *
@@ -8,9 +8,7 @@
  *
  * You should have received a copy of the GNU General Public License along with SADL.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package sadl.models.pta;
-
 import jsat.distributions.empirical.NormalRandomized;
 
 import org.apache.commons.math3.util.Precision;
@@ -173,55 +171,51 @@ public class SubEvent {
 		return anomalyInterval.getIntersectionWith(boundInterval);
 	}
 
-	/*
-	 * public HalfClosedInterval getIntervalInState(PTAState state) {
-	 * 
-	 * if (state == null) {
-	 * throw new IllegalArgumentException();
-	 * }
-	 * 
-	 * return new HalfClosedInterval(getLeftIntervalBoundInState(state), getRightIntervalBoundInState(state));
-	 * }
-	 */
+	public HalfClosedInterval getIntervalInState(PTAState state) {
 
-	/*
-	 * public double getLeftIntervalBoundInState(PTAState state) {
-	 * 
-	 * if (state == null) {
-	 * throw new IllegalArgumentException();
-	 * }
-	 * 
-	 * if (previousSubEvent != null && state.outTransitions.containsKey(previousSubEvent.getSymbol())) {
-	 * if (this.hasLeftCriticalArea()) {
-	 * return getLeftBound();
-	 * } else if (previousSubEvent instanceof SubEventCriticalArea
-	 * && !state.outTransitions.containsKey(previousSubEvent.getPreviousSubEvent().getSymbol())) {
-	 * return previousSubEvent.getLeftBound();
-	 * }
-	 * }
-	 * 
-	 * return getLeftAnomalyBound();
-	 * }
-	 */
+		if (state == null) {
+			throw new IllegalArgumentException();
+		}
 
-	/*
-	 * public double getRightIntervalBoundInState(PTAState state) {
-	 * 
-	 * if (state == null) {
-	 * throw new IllegalArgumentException();
-	 * }
-	 * 
-	 * if (nextSubEvent != null && state.outTransitions.containsKey(this.getNextSubEvent().getSymbol())) {
-	 * if (this.hasRightCriticalArea()) {
-	 * return getRightBound();
-	 * } else if (nextSubEvent instanceof SubEventCriticalArea && !state.outTransitions.containsKey(nextSubEvent.getNextSubEvent().getSymbol())) {
-	 * return nextSubEvent.getRightBound();
-	 * }
-	 * }
-	 * 
-	 * return getRightBound();
-	 * }
-	 */
+		return new HalfClosedInterval(getLeftIntervalBoundInState(state), getRightIntervalBoundInState(state));
+	}
+
+
+	public double getLeftIntervalBoundInState(PTAState state) {
+
+		if (state == null) {
+			throw new IllegalArgumentException();
+		}
+
+		if (previousSubEvent != null && state.outTransitions.containsKey(previousSubEvent.getSymbol())) {
+			if (this.hasLeftCriticalArea()) {
+				return getLeftBound();
+			} else if (previousSubEvent instanceof SubEventCriticalArea
+					&& !state.outTransitions.containsKey(previousSubEvent.getPreviousSubEvent().getSymbol())) {
+				return previousSubEvent.getLeftBound();
+			}
+		}
+
+		return getLeftAnomalyBound();
+	}
+
+
+	public double getRightIntervalBoundInState(PTAState state) {
+
+		if (state == null) {
+			throw new IllegalArgumentException();
+		}
+
+		if (nextSubEvent != null && state.outTransitions.containsKey(this.getNextSubEvent().getSymbol())) {
+			if (this.hasRightCriticalArea()) {
+				return getRightBound();
+			} else if (nextSubEvent instanceof SubEventCriticalArea && !state.outTransitions.containsKey(nextSubEvent.getNextSubEvent().getSymbol())) {
+				return nextSubEvent.getRightBound();
+			}
+		}
+
+		return getRightBound();
+	}
 
 	public boolean hasLeftCriticalArea() {
 

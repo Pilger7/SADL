@@ -1,6 +1,6 @@
 /**
  * This file is part of SADL, a library for learning all sorts of (timed) automata and performing sequence-based anomaly detection.
- * Copyright (C) 2013-2015  the original author or authors.
+ * Copyright (C) 2013-2016  the original author or authors.
  *
  * SADL is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  *
@@ -23,7 +23,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.math3.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,12 +69,23 @@ public class ButlaPdtaLearner implements ProbabilisticModelLearner, Compatibilit
 			throw new IllegalArgumentException();
 		}
 
-
 		this.eventGenerator = new EventGenerator(bandwidth, anomalyProbability, warningProbability, formelVariant);
 		this.a = a;
 		this.transitionsToCheck = transitionsToCheck;
 		this.mergeStrategy = mergeStrategy;
 		this.splittingStrategy = splittingStrategy;
+	}
+
+	/**
+	 * Same as alergia with recursion
+	 * @param alpha
+	 */
+	public ButlaPdtaLearner(double alpha) {
+		this.eventGenerator = new EventGenerator(0, 0, 0, KDEFormelVariant.OriginalKDE);
+		this.splittingStrategy = EventsCreationStrategy.DontSplitEvents;
+		this.a = alpha;
+		this.mergeStrategy = PTAOrdering.TopDown;
+		this.transitionsToCheck = TransitionsType.Incoming;
 	}
 
 	public ButlaPdtaLearner(EventsCreationStrategy splittingStrategy, KDEFormelVariant formelVariant) {
@@ -107,7 +118,7 @@ public class ButlaPdtaLearner implements ProbabilisticModelLearner, Compatibilit
 			logger.debug("Merged compatible states.");
 			// pta.toGraphvizFile(Paths.get("C:\\Private Daten\\GraphViz\\bin\\in-out.gv"));
 			final PDTA pdta = pta.toPDTA();
-			logger.debug("Learned PDTA (" + pdta.getNumberOfStates() + " states) with BUTLA");
+			logger.info("Learned PDTA (" + pdta.getStateCount() + " states) with BUTLA");
 			return pdta;
 		} catch (final Exception e) {
 			e.printStackTrace();
@@ -118,7 +129,7 @@ public class ButlaPdtaLearner implements ProbabilisticModelLearner, Compatibilit
 	/**
 	 * 
 	 * @param timedEventSequences
-	 *            Sequences of timed events.
+	 * Sequences of timed events.
 	 * @return
 	 */
 	public HashMap<String, TDoubleList> mapEventsToTimes(TimedInput timedEventSequences) {
@@ -161,6 +172,11 @@ public class ButlaPdtaLearner implements ProbabilisticModelLearner, Compatibilit
 
 				final PTAState workedOffState = workedOffIterator.next();
 
+				if (!workedOffState.exists()) {
+					workedOffIterator.remove();
+					continue;
+				}
+
 				if (!state.exists()) {
 					state = state.isMergedWith();
 				}
@@ -168,11 +184,6 @@ public class ButlaPdtaLearner implements ProbabilisticModelLearner, Compatibilit
 				if (state.isMarked()) {
 					// sum3 += System.currentTimeMillis() - time2;
 					continue outerloop;
-				}
-
-				if (!workedOffState.exists()) {
-					workedOffIterator.remove();
-					continue;
 				}
 
 				// time1 = System.currentTimeMillis();
@@ -205,7 +216,7 @@ public class ButlaPdtaLearner implements ProbabilisticModelLearner, Compatibilit
 	public Pair<TimedInput, Map<String, Event>> splitEventsInTimedSequences(TimedInput timedSequences) {
 		final HashMap<String, TDoubleList> eventToTimelistMap = mapEventsToTimes(timedSequences);
 		final HashMap<String, Event> eventsMap = generateSubEvents(eventToTimelistMap);
-		return Pair.create(getSplitInputForMapping(timedSequences, eventsMap), eventsMap);
+		return Pair.of(getSplitInputForMapping(timedSequences, eventsMap), eventsMap);
 	}
 
 	public TimedInput getSplitInputForMapping(TimedInput timedSequences, final Map<String, Event> eventsMap) {
@@ -229,7 +240,7 @@ public class ButlaPdtaLearner implements ProbabilisticModelLearner, Compatibilit
 	public HashMap<String, Event> generateSubEvents(Map<String, TDoubleList> eventTimesMap) {
 		final Set<String> eventSymbolsSet = eventTimesMap.keySet();
 		final HashMap<String, Event> eventsMap = new HashMap<>(eventSymbolsSet.size());
-		logger.debug("There are {} events", eventSymbolsSet.size());
+		logger.info("There are {} events", eventSymbolsSet.size());
 		logger.debug("Starting to generate subevents...");
 		int subEventCount = 0;
 		for (final String eventSysbol : eventSymbolsSet) {

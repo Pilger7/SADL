@@ -1,6 +1,6 @@
 /**
  * This file is part of SADL, a library for learning all sorts of (timed) automata and performing sequence-based anomaly detection.
- * Copyright (C) 2013-2015  the original author or authors.
+ * Copyright (C) 2013-2016  the original author or authors.
  *
  * SADL is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  *
@@ -8,7 +8,6 @@
  *
  * You should have received a copy of the GNU General Public License along with SADL.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package sadl.utils;
 
 import java.io.BufferedReader;
@@ -35,7 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 
-import org.apache.commons.math3.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +58,23 @@ public class IoUtils {
 			paths[i] = p;
 		}
 		deleteFiles(paths);
+	}
+
+	public static void runGraphviz(final Path gvFile, final Path pngFile) {
+		final String[] args = { "dot", "-Tpng", gvFile.toAbsolutePath().toString(), "-o", pngFile.toAbsolutePath().toString() };
+		Process pr = null;
+		try {
+			pr = Runtime.getRuntime().exec(args);
+		} catch (final Exception e) {
+			logger.warn("Could not create plot of Model: {}", e.getMessage());
+		} finally {
+			if (pr != null) {
+				try {
+					pr.waitFor();
+				} catch (final InterruptedException e) {
+				}
+			}
+		}
 	}
 
 	public static void deleteFiles(Path[] paths) throws IOException {
@@ -124,7 +140,7 @@ public class IoUtils {
 				ex.shutdownNow();
 				throw new IOException("The provided file " + trainTestFile + " does not contain the separator " + SmacDataGenerator.TRAIN_TEST_SEP);
 			}
-			final Pair<TimedInput, TimedInput> result = new Pair<>(trainWorker.get(), testWorker.get());
+			final Pair<TimedInput, TimedInput> result = Pair.of(trainWorker.get(), testWorker.get());
 			return result;
 		} catch (final IOException | InterruptedException | ExecutionException e) {
 			logger.error("Unexpected exception!", e);
