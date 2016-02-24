@@ -65,8 +65,6 @@ public class PTA {
 		return events;
 	}
 
-	// TODO getTransitions
-
 	public LinkedHashMap<Integer, PTAState> getTails() {
 
 		return tails;
@@ -280,15 +278,13 @@ public class PTA {
 				final PDTAState pdrtaStateTarget = pdtaStates.get(transition.getTarget().getId());
 				final SubEvent event = transition.getEvent();
 
-				HalfClosedInterval interval;
-				if (intervalCreation == IntervalCreationStrategy.OriginalButla) {
+				HalfClosedInterval interval = null;
+				if (intervalCreation == IntervalCreationStrategy.OriginalButla || intervalCreation == null) {
 					interval = event.getInterval();
 				} else if (intervalCreation == IntervalCreationStrategy.extendInterval) {
 					interval = event.getIntervalInState(ptaState);
 				} else if (intervalCreation == IntervalCreationStrategy.WithoutAnomalyBounds) {
 					interval = event.getBounds();
-				} else {
-					throw new IllegalArgumentException();
 				}
 
 				pdrtaStateSource.addTransition(event, pdrtaStateTarget, interval, (double) transition.getCount() / (outTransitionsCount + endCount));

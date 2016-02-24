@@ -10,6 +10,10 @@
  */
 package sadl.modellearner;
 
+import gnu.trove.list.TDoubleList;
+import gnu.trove.list.array.TDoubleArrayList;
+import gnu.trove.list.array.TIntArrayList;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,9 +26,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gnu.trove.list.TDoubleList;
-import gnu.trove.list.array.TDoubleArrayList;
-import gnu.trove.list.array.TIntArrayList;
 import sadl.constants.EventsCreationStrategy;
 import sadl.constants.IntervalCreationStrategy;
 import sadl.constants.KDEFormelVariant;
@@ -159,55 +160,11 @@ public class ButlaPdtaLearner implements ProbabilisticModelLearner, Compatibilit
 
 	}
 
-	/*
-	 * public void mergeCompatibleStates(PTA pta, List<PTAState> statesOrdering) {
-	 * 
-	 * final ArrayList<PTAState> workedOffStates = new ArrayList<>();
-	 * 
-	 * outerloop: for (final PTAState state : statesOrdering) {
-	 * 
-	 * for (final ListIterator<PTAState> workedOffIterator = workedOffStates.listIterator(); workedOffIterator.hasNext();) {
-	 * final PTAState workedOffState = workedOffIterator.next();
-	 * 
-	 * if (!state.exists()) {
-	 * continue outerloop;
-	 * }
-	 * 
-	 * if (!workedOffState.exists()) {
-	 * workedOffIterator.remove();
-	 * continue;
-	 * }
-	 * 
-	 * if (compatible(workedOffState, state)) {
-	 * logger.trace("Merging state {} and {}.", workedOffState, state);
-	 * PTAState.merge(workedOffState, state, splittingStrategy);
-	 * break;
-	 * }
-	 * 
-	 * }
-	 * 
-	 * if (state.exists()) {
-	 * workedOffStates.add(state);
-	 * }
-	 * }
-	 * 
-	 * workedOffStates.add(pta.getRoot());
-	 * pta.setStates(workedOffStates);
-	 * }
-	 */
-
 	public void mergeCompatibleStates(PTA pta, List<PTAState> statesOrdering) {
-
-		// int i = 0;
-		// long time1 = 0, time2 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
-
-		// int i = 0;
-		// long time1 = 0, time2 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
 
 		final ArrayList<PTAState> workedOffStates = new ArrayList<>();
 
 		outerloop: for (PTAState state : statesOrdering) {
-			// time2 = System.currentTimeMillis();
 
 			for (final ListIterator<PTAState> workedOffIterator = workedOffStates.listIterator(); workedOffIterator.hasNext();) {
 
@@ -218,7 +175,6 @@ public class ButlaPdtaLearner implements ProbabilisticModelLearner, Compatibilit
 				}
 
 				if (state.isMarked()) {
-					// sum3 += System.currentTimeMillis() - time2;
 					continue outerloop;
 				}
 
@@ -227,17 +183,10 @@ public class ButlaPdtaLearner implements ProbabilisticModelLearner, Compatibilit
 					continue;
 				}
 
-				// time1 = System.currentTimeMillis();
 				if (compatible(workedOffState, state)) {
 					logger.trace("Merging state {} and {}.", workedOffState, state);
-					// sum1 += System.currentTimeMillis() - time1;
-					// time1 = System.currentTimeMillis();
 					PTAState.merge(workedOffState, state, splittingStrategy);
-					// sum2 += System.currentTimeMillis() - time1;
 					break;
-				}
-				else {
-					// sum1 += System.currentTimeMillis() - time1;
 				}
 
 			}
@@ -247,7 +196,6 @@ public class ButlaPdtaLearner implements ProbabilisticModelLearner, Compatibilit
 				workedOffStates.add(state);
 			}
 
-			// sum3 += System.currentTimeMillis() - time2;
 		}
 
 		workedOffStates.add(pta.getRoot());

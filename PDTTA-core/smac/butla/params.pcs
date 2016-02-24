@@ -2,19 +2,17 @@
 
 alpha [0.0001,0.9999] [0.05]
 transitionsToCheck {Incoming, Outgoing, Both} [Incoming]
-anomalyProbability [0.00000001,0.9999] [0.05]
+anomalyProbability [0.00000001,0.999999] [0.05]
 
-#warningProbability [0.00000001,0.9999] [0.05]
+#warningProbability [0.00000001,0.999999] [0.05]
 #forbidden:
 #{warningProbability > anomalyProbability}
 
 mergeStrategy {TopDown, BottomUp} [BottomUp]
 splittingStrategy {NotTimedEvents, DontSplitEvents, SplitEvents, IsolateCriticalAreas } [SplitEvents]
-formelVariant {	OriginalKDE, OriginalButlaVariableBandwidth, ButlaBandwidthSquared, ButlaBandwidthNotSquared} [OriginalKDE]
+formelVariant {OriginalKDE} [OriginalKDE]
 intervalCreationStrategy {OriginalButla, WithoutAnomalyBounds, extendInterval} [OriginalButla]
 intervalCreationStrategy | splittingStrategy in {SplitEvents}
-
-DontSplitEvents,IsolateCriticalAreas
 
 bandwidth [10000,1000000] [20000]
 bandwidth | formelVariant in {OriginalKDE}
